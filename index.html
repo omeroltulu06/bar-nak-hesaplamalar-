@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Barınak Havalandırma Hesaplama</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2d6a2d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Barınak Hav.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --green: #2d6a2d;
+    --green-light: #4a9e4a;
+    --green-pale: #e8f5e8;
+    --green-mid: #c5e8c5;
+    --amber: #e8a020;
+    --amber-pale: #fff3d0;
+    --red: #c0392b;
+    --red-pale: #fdecea;
+    --bg: #f4f7f4;
+    --card: #ffffff;
+    --text: #1a2e1a;
+    --muted: #6b8f6b;
+    --border: #d0e8d0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: linear-gradient(135deg, #1a4a1a 0%, #2d6a2d 60%, #3d8a3d 100%);
+    color: white;
+    padding: 20px 16px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(45,106,45,0.4);
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    line-height: 1.1;
+  }
+
+  header p {
+    font-size: 0.72rem;
+    opacity: 0.75;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tabs {
+    display: flex;
+    background: #1a4a1a;
+    border-bottom: 2px solid var(--green);
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 8px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+  }
+
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: var(--amber);
+    background: rgba(255,255,255,0.07);
+  }
+
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(45,106,45,0.07);
+  }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1.5px;
+    color: var(--green);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--green-mid);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .icon { font-size: 1rem; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input, select {
+    padding: 9px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    background: var(--green-pale);
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--green-light);
+    background: #fff;
+  }
+
+  .btn-calc {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-top: 6px;
+    box-shadow: 0 4px 14px rgba(45,106,45,0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+
+  .btn-calc:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(45,106,45,0.2); }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .result-box {
+    background: var(--green-pale);
+    border-radius: 10px;
+    padding: 12px 10px;
+    border: 1.5px solid var(--green-mid);
+    text-align: center;
+  }
+
+  .result-box.highlight {
+    background: linear-gradient(135deg, #1a4a1a, #2d6a2d);
+    color: white;
+    border-color: transparent;
+    grid-column: 1 / -1;
+  }
+
+  .result-box .val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .result-box.highlight .val {
+    font-size: 1.8rem;
+    color: #a8f0a8;
+  }
+
+  .result-box .unit {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .result-box.highlight .unit { color: rgba(255,255,255,0.65); }
+
+  .result-box .lbl {
+    font-size: 0.63rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .result-box.highlight .lbl { color: rgba(255,255,255,0.8); }
+
+  .status-bar {
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+
+  .status-bar.ok { background: var(--green-pale); color: var(--green); border: 1.5px solid var(--green-mid); }
+  .status-bar.warn { background: var(--amber-pale); color: #7a5010; border: 1.5px solid #f0d080; }
+  .status-bar.danger { background: var(--red-pale); color: var(--red); border: 1.5px solid #f0b0a8; }
+  .status-bar.info { background: #e8f0ff; color: #1a3080; border: 1.5px solid #c0d0ff; }
+
+  .formula-box {
+    background: #1a2e1a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: #a8f0a8;
+    margin: 8px 0;
+    overflow-x: auto;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin: 14px 0 8px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
+  }
+
+  .season-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-kis { background: #deeeff; color: #1a4a8a; }
+  .badge-gecis { background: #fff0cc; color: #8a5a00; }
+  .badge-yaz { background: #ffeedd; color: #8a3a00; }
+
+  /* Info page */
+  .info-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-item:last-child { border-bottom: none; }
+
+  .info-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--green-pale);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .info-content h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .info-content p {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  /* AI Chat */
+  .ai-chat-box {
+    min-height: 120px;
+    background: var(--green-pale);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text);
+    border: 1.5px solid var(--green-mid);
+    white-space: pre-wrap;
+  }
+
+  .ai-loading {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .ai-loading span {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: bounce 0.8s infinite;
+  }
+
+  .ai-loading span:nth-child(2) { animation-delay: 0.15s; }
+  .ai-loading span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    resize: none;
+    min-height: 80px;
+    background: var(--green-pale);
+  }
+
+  textarea:focus { outline: none; border-color: var(--green-light); background: #fff; }
+
+  .hidden { display: none !important; }
+
+  /* Responsive tweaks */
+  @media (max-width: 360px) {
+    .results-grid { grid-template-columns: 1fr; }
+    .result-box.highlight { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐄 Barınak Havalandırma</h1>
+  <p>Isı Dengesi ve Havalandırma Kapasitesi Hesaplama</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('giris')">⚙️ Giriş</button>
+  <button class="tab-btn" onclick="switchTab('sonuc')">📊 Sonuç</button>
+  <button class="tab-btn" onclick="switchTab('bilgi')">📖 Bilgi</button>
+</div>
+
+<!-- GİRİŞ SAYFASI -->
+<div id="tab-giris" class="page active">
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🏡</span> Barınak Bilgileri</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Hayvan Türü</label>
+        <select id="hayvanTuru" onchange="updateDefaults()">
+          <option value="broiler">Broyler (Tavuk)</option>
+          <option value="yumurtaci">Yumurtacı Tavuk</option>
+          <option value="hindi">Hindi</option>
+          <option value="inek">Süt İneği</option>
+          <option value="domuz">Domuz</option>
+          <option value="koyun">Koyun/Keçi</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hayvan Sayısı (N)</label>
+        <input type="number" id="hayvanSayisi" value="12000" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Yöre</label>
+        <select id="yore" onchange="updateTemps()">
+          <option value="samsun">Samsun</option>
+          <option value="ankara">Ankara</option>
+          <option value="izmir">İzmir</option>
+          <option value="erzurum">Erzurum</option>
+          <option value="antalya">Antalya</option>
+          <option value="custom">Özel</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Barınak Türü</label>
+        <select id="barinakTuru">
+          <option value="kumes">Kümes</option>
+          <option value="ahir">Ahır</option>
+          <option value="agil">Ağıl</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🌡️</span> Sıcaklık Değerleri</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>İç Sıcaklık - Kış (°C)</label>
+        <input type="number" id="tiKis" value="18" step="0.5">
+      </div>
+      <div class="form-group">
+        <label>Dış Sıcaklık - Kış (°C)</label>
+        <input type="number" id="tdKis" value="-3" step="0.5">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>İç Sıcaklık - Yaz (°C)</label>
+        <input type="number" id="tiYaz" value="30" step="0.5">
+      </div>
+      <div class="form-group">
+        <label>Dış Sıcaklık - Yaz (°C)</label>
+        <input type="number" id="tdYaz" value="26" step="0.5">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🧱</span> Yapı Elemanları (U Değerleri)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>U Duvar (W/m²°C)</label>
+        <input type="number" id="uDuvar" value="1.74" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Alan Duvar (m²)</label>
+        <input type="number" id="aDuvar" value="246.2" step="0.1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>U Çatı (W/m²°C)</label>
+        <input type="number" id="uCati" value="2.21" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Alan Çatı (m²)</label>
+        <input type="number" id="aCati" value="881" step="0.1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>U Pencere (W/m²°C)</label>
+        <input type="number" id="uPencere" value="5.93" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Alan Pencere (m²)</label>
+        <input type="number" id="aPencere" value="83" step="0.1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>U Kapı (W/m²°C)</label>
+        <input type="number" id="uKapi" value="6.02" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Alan Kapı (m²)</label>
+        <input type="number" id="aKapi" value="11" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💨</span> Havalandırma Parametreleri</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>CO₂ Miktarı qc (l/h/hayvan)</label>
+        <input type="number" id="qc" value="2.2" step="0.1">
+      </div>
+      <div class="form-group">
+        <label>Özgül Hacim ρ - Kış (m³/kg)</label>
+        <input type="number" id="rhoKis" value="0.84" step="0.01">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Su Buharı qm (g/h/hayvan)</label>
+        <input type="number" id="qm" value="6.3" step="0.1">
+      </div>
+      <div class="form-group">
+        <label>İç Nem qmi (g/kg)</label>
+        <input type="number" id="qmi" value="12.9" step="0.1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dış Nem qm0 (g/kg)</label>
+        <input type="number" id="qm0" value="2.94" step="0.1">
+      </div>
+      <div class="form-group">
+        <label>Özgül Hacim ρ - Yaz (m³/kg)</label>
+        <input type="number" id="rhoYaz" value="0.88" step="0.01">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Duyulur Isı qd Kış (W/hayvan)</label>
+        <input type="number" id="qdKis" value="5.4" step="0.1">
+      </div>
+      <div class="form-group">
+        <label>Duyulur Isı qd Yaz (W/hayvan)</label>
+        <input type="number" id="qdYaz" value="4.3" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="hesapla()">🔢 HESAPLA</button>
+</div>
+
+<!-- SONUÇ SAYFASI -->
+<div id="tab-sonuc" class="page">
+  <div id="sonuclar" class="hidden">
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🏗️</span> Yapı Elemanlarından Isı Kaybı (qy)</div>
+      <div class="results-grid" id="qyGrid"></div>
+      <div class="divider"></div>
+      <div class="result-box highlight" id="qyToplam">
+        <div class="val">-</div>
+        <div class="unit">W</div>
+        <div class="lbl">Toplam qy</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">💨</span> Havalandırma Kapasiteleri</div>
+
+      <p class="section-title"><span class="season-badge badge-kis">❄️ Kış</span></p>
+      <div class="results-grid" id="kisGrid"></div>
+
+      <div class="divider"></div>
+      <p class="section-title"><span class="season-badge badge-gecis">🍂 Geçiş</span></p>
+      <div class="results-grid" id="gecisGrid"></div>
+
+      <div class="divider"></div>
+      <p class="section-title"><span class="season-badge badge-yaz">☀️ Yaz</span></p>
+      <div class="results-grid" id="yazGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">⚖️</span> Isı Dengesi (Kış)</div>
+      <div class="results-grid" id="dengeGrid"></div>
+      <div id="dengeStatus"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🔵</span> Hava Açıklık Alanları</div>
+      <div class="results-grid" id="aciklikGrid"></div>
+    </div>
+
+  </div>
+
+  <div id="sonucYok" class="status-bar info">
+    ℹ️ Henüz hesaplama yapılmadı. Giriş sekmesinden verileri doldurun ve "Hesapla" butonuna basın.
+  </div>
+</div>
+
+<!-- BİLGİ SAYFASI -->
+<div id="tab-bilgi" class="page">
+  <div class="card">
+    <div class="card-title">📐 Formüller</div>
+
+    <div class="info-item">
+      <div class="info-icon">🏗️</div>
+      <div class="info-content">
+        <h4>Yapı Elemanlarından Isı Kaybı</h4>
+        <div class="formula-box">qy = U × A × (ti - td)</div>
+        <p>U: Isı iletim katsayısı, A: Yüzey alanı</p>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <div class="info-icon">❄️</div>
+      <div class="info-content">
+        <h4>Kış - CO₂ Dengesi</h4>
+        <div class="formula-box">Qmin = 0.446 × N × qc × ρ</div>
+        <p>N: Hayvan sayısı, qc: CO₂ miktarı, ρ: Özgül hacim</p>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <div class="info-icon">💧</div>
+      <div class="info-content">
+        <h4>Kış - Su Buharı Dengesi</h4>
+        <div class="formula-box">Qmin = (qm × N / (qmi - qm0)) × ρ</div>
+        <p>qm: Su buharı, qmi: İç nem, qm0: Dış nem</p>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <div class="info-icon">🍂</div>
+      <div class="info-content">
+        <h4>Geçiş Mevsimi</h4>
+        <div class="formula-box">Qgeçiş = (qd×N - qy) / (cp×Δt) × ρ</div>
+        <p>cp = 0.28 W/kg°C, Δt = 5°C (kümes)</p>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <div class="info-icon">☀️</div>
+      <div class="info-content">
+        <h4>Yaz Mevsimi</h4>
+        <div class="formula-box">Qyaz = qd × N / (cp × Δt) × ρ</div>
+        <p>cp = 0.28 W/kg°C</p>
+      </div>
+    </div>
+
+    <div class="info-item">
+      <div class="info-icon">🌬️</div>
+      <div class="info-content">
+        <h4>Havalandırmadan Isı Kaybı</h4>
+        <div class="formula-box">qv = 0.34 × Q × (ti - td)</div>
+        <p>Q: Havalandırma kapasitesi (m³/h)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Referans Değerler</div>
+    <div class="info-item">
+      <div class="info-icon">🐔</div>
+      <div class="info-content">
+        <h4>Broyler (Tavuk)</h4>
+        <p>qc: 2.2 l/h | qm: 6.3 g/h | qd Kış: 5.4 W | qd Yaz: 4.3 W<br>İç sıcaklık: 18°C (kış), 30°C (yaz)</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">🐄</div>
+      <div class="info-content">
+        <h4>Süt İneği</h4>
+        <p>qc: 150 l/h | qm: 380 g/h | qd Kış: 450 W<br>İç sıcaklık: 10°C (kış), 20°C (yaz)</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">📏</div>
+      <div class="info-content">
+        <h4>Δt Değerleri</h4>
+        <p>Ahır ve Ağıl: 7°C | Kümes: 5°C (geçiş mevsimi için)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ℹ️ Hakkında</div>
+    <p style="font-size:0.78rem; color:var(--muted); line-height:1.6;">
+      Bu uygulama, Türkiye'deki hayvan barınaklarında ısı dengesi ve havalandırma kapasitesini hesaplamak için geliştirilmiştir. 
+      TS ve FAO standartlarına uygun formüller kullanılmaktadır.
+      <br><br>
+      <strong>Versiyon:</strong> 1.0 — Temel Hesaplama<br>
+      <strong>Planlanan:</strong> v2.0 AB Standartları Modülü
+    </p>
+  </div>
+</div>
+
+<script>
+// ---- Veri ----
+const yoreData = {
+  samsun:  { kis: -3,  yaz: 26 },
+  ankara:  { kis: -8,  yaz: 32 },
+  izmir:   { kis: 2,   yaz: 34 },
+  erzurum: { kis: -18, yaz: 26 },
+  antalya: { kis: 4,   yaz: 36 },
+  custom:  { kis: 0,   yaz: 30 },
+};
+
+const hayvanData = {
+  broiler:    { qc: 2.2,  qm: 6.3,  qdKis: 5.4,  qdYaz: 4.3,  tiKis: 18, tiYaz: 30 },
+  yumurtaci:  { qc: 2.2,  qm: 6.3,  qdKis: 5.4,  qdYaz: 4.3,  tiKis: 18, tiYaz: 28 },
+  hindi:      { qc: 3.5,  qm: 9.0,  qdKis: 7.0,  qdYaz: 6.0,  tiKis: 16, tiYaz: 28 },
+  inek:       { qc: 150,  qm: 380,  qdKis: 450,  qdYaz: 350,  tiKis: 10, tiYaz: 20 },
+  domuz:      { qc: 40,   qm: 100,  qdKis: 120,  qdYaz: 100,  tiKis: 14, tiYaz: 22 },
+  koyun:      { qc: 12,   qm: 30,   qdKis: 50,   qdYaz: 40,   tiKis: 10, tiYaz: 22 },
+};
+
+let lastResults = null;
+
+function updateDefaults() {
+  const d = hayvanData[document.getElementById('hayvanTuru').value];
+  if (!d) return;
+  document.getElementById('qc').value     = d.qc;
+  document.getElementById('qm').value     = d.qm;
+  document.getElementById('qdKis').value  = d.qdKis;
+  document.getElementById('qdYaz').value  = d.qdYaz;
+  document.getElementById('tiKis').value  = d.tiKis;
+  document.getElementById('tiYaz').value  = d.tiYaz;
+}
+
+function updateTemps() {
+  const y = document.getElementById('yore').value;
+  if (y === 'custom') return;
+  const d = yoreData[y];
+  document.getElementById('tdKis').value = d.kis;
+  document.getElementById('tdYaz').value = d.yaz;
+}
+
+function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function resultBox(val, unit, label, highlight=false) {
+  const cls = highlight ? 'result-box highlight' : 'result-box';
+  return `<div class="${cls}">
+    <div class="val">${typeof val === 'number' ? val.toLocaleString('tr-TR', {maximumFractionDigits:2}) : val}</div>
+    <div class="unit">${unit}</div>
+    <div class="lbl">${label}</div>
+  </div>`;
+}
+
+function hesapla() {
+  const N = g('hayvanSayisi');
+  const tiKis = g('tiKis'), tdKis = g('tdKis');
+  const tiYaz = g('tiYaz'), tdYaz = g('tdYaz');
+  const dTKis = tiKis - tdKis;
+
+  // qy hesabı
+  const qyDuvar   = g('uDuvar')   * g('aDuvar')   * dTKis;
+  const qyCati    = g('uCati')    * g('aCati')     * dTKis;
+  const qyPencere = g('uPencere') * g('aPencere')  * dTKis;
+  const qyKapi    = g('uKapi')    * g('aKapi')     * dTKis;
+  const qyToplam  = qyDuvar + qyCati + qyPencere + qyKapi;
+
+  // Kış CO2
+  const qc = g('qc'), rhoKis = g('rhoKis');
+  const QminCO2 = 0.446 * N * qc * rhoKis;
+
+  // Kış Su Buharı
+  const qm = g('qm'), qmi = g('qmi'), qm0 = g('qm0');
+  const QminSuBuhari = (qm * N / (qmi - qm0)) * rhoKis;
+
+  // Seçilen Qmin (büyük olanı)
+  const QminKis = Math.max(QminCO2, QminSuBuhari);
+
+  // Geçiş
+  const qdKis = g('qdKis'), qdYaz = g('qdYaz');
+  const qdGecis = (qdKis + qdYaz) / 2;
+  const barinakTuru = document.getElementById('barinakTuru').value;
+  const deltaTGecis = barinakTuru === 'kumes' ? 5 : 7;
+  const rhoGecis = (rhoKis + g('rhoYaz')) / 2;
+
+  // geçiş mevsimi qy: ti=(tiKis+tiYaz)/2, td=(tdKis+tdYaz)/2
+  const tiGecis = (tiKis + tiYaz) / 2, tdGecis = (tdKis + tdYaz) / 2;
+  const qyGecis = (g('uDuvar')*g('aDuvar') + g('uCati')*g('aCati') + g('uPencere')*g('aPencere') + g('uKapi')*g('aKapi')) * (tiGecis - tdGecis);
+
+  const QGecis = (qdGecis * N - qyGecis) / (0.28 * deltaTGecis) * rhoGecis;
+
+  // Yaz
+  const rhoYaz = g('rhoYaz');
+  const deltaTYaz = tiYaz - tdYaz;
+  const QYaz = qdYaz * N / (0.28 * (deltaTYaz > 0 ? deltaTYaz : deltaTGecis)) * rhoYaz;
+
+  // Qmax (tasarım kapasitesi)
+  const QMax = Math.max(QminKis, QGecis, QYaz);
+
+  // havalandırma ısı kaybı (kış)
+  const qvKis = 0.34 * QminKis * dTKis;
+
+  // Isı dengesi
+  const qhHayvan = qdKis * N;
+  const qhDenge  = qyToplam + qvKis;
+  const fark     = qhHayvan - qhDenge;
+
+  // Hava açıklık alanları
+  const V = 1814.70; // hava çıkış bacası hızı (örnek)
+  const Acikis  = QMax / (3600 * V);
+  const Agitis  = Acikis * 2 / 3;
+  const AgirisMek = QMax / (3600 * 2.0); // mekanik (varsayılan 2 m/s)
+
+  lastResults = {
+    hayvanTuru: document.getElementById('hayvanTuru').options[document.getElementById('hayvanTuru').selectedIndex].text,
+    N, tiKis, tdKis, tiYaz, tdYaz,
+    qyDuvar, qyCati, qyPencere, qyKapi, qyToplam,
+    QminCO2, QminSuBuhari, QminKis,
+    QGecis, QYaz, QMax,
+    qvKis, qhHayvan, qhDenge, fark,
+    Acikis, Agitis, AgirisMek
+  };
+
+  // Sonuçları göster
+  document.getElementById('qyGrid').innerHTML =
+    resultBox(qyDuvar, 'W', 'Duvar') +
+    resultBox(qyCati, 'W', 'Çatı') +
+    resultBox(qyPencere, 'W', 'Pencere') +
+    resultBox(qyKapi, 'W', 'Kapı');
+
+  document.getElementById('qyToplam').innerHTML =
+    `<div class="val">${qyToplam.toLocaleString('tr-TR',{maximumFractionDigits:2})}</div>
+     <div class="unit">W</div><div class="lbl">Toplam qy (Yapıdan Isı Kaybı)</div>`;
+
+  document.getElementById('kisGrid').innerHTML =
+    resultBox(QminCO2, 'm³/h', 'CO₂ Dengesi') +
+    resultBox(QminSuBuhari, 'm³/h', 'Su Buharı Dengesi') +
+    resultBox(QminKis, 'm³/h', 'Qmin (Kış)', true);
+
+  document.getElementById('gecisGrid').innerHTML =
+    resultBox(QGecis, 'm³/h', 'Geçiş Mevsimi', true);
+
+  document.getElementById('yazGrid').innerHTML =
+    resultBox(QYaz, 'm³/h', 'Yaz Mevsimi', true);
+
+  document.getElementById('dengeGrid').innerHTML =
+    resultBox(qhHayvan, 'W', 'qh (Hayvan Isısı)') +
+    resultBox(qyToplam, 'W', 'qy (Yapı Kaybı)') +
+    resultBox(qvKis, 'W', 'qv (Hav. Kaybı)') +
+    resultBox(qhDenge, 'W', 'qy + qv');
+
+  let statusHTML = '';
+  if (fark > 0) {
+    statusHTML = `<div class="status-bar warn">⚠️ Hayvanların ürettiği ısı (${qhHayvan.toFixed(0)} W), yapı+havalandırma ısı kaybından <strong>${fark.toFixed(0)} W fazla</strong>. Havalandırma debisi artırılmalı veya ısı yalıtımı iyileştirilmelidir.</div>`;
+  } else if (fark < -5000) {
+    statusHTML = `<div class="status-bar danger">🔴 Isı dengesi açığı var! Hayvan ısısı yetersiz, <strong>${Math.abs(fark).toFixed(0)} W ek ısıtma</strong> gerekebilir.</div>`;
+  } else {
+    statusHTML = `<div class="status-bar ok">✅ Isı dengesi sağlanmış durumda. Sistem optimum çalışıyor.</div>`;
+  }
+  document.getElementById('dengeStatus').innerHTML = statusHTML;
+
+  document.getElementById('aciklikGrid').innerHTML =
+    resultBox(Acikis.toFixed(2), 'm²', 'Hava Çıkış Açıklığı') +
+    resultBox(Agitis.toFixed(2), 'm²', 'Hava Giriş (Doğal)') +
+    resultBox(AgirisMek.toFixed(2), 'm²', 'Hava Giriş (Mek.)');
+
+  document.getElementById('sonuclar').classList.remove('hidden');
+  document.getElementById('sonucYok').style.display = 'none';
+
+  switchTab('sonuc');
+}
+
+// ---- Tab ----
+function switchTab(name) {
+  const tabs = ['giris','sonuc','bilgi'];
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>
