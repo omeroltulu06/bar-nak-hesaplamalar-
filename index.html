@@ -361,6 +361,67 @@
     30% { transform: translateY(-6px); }
   }
 
+  .auto-note {
+    font-size: 0.68rem;
+    color: var(--green-light);
+    font-weight: 600;
+    margin-top: 3px;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .auto-note::before { content: '✓ '; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+
+  .boyut-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .boyut-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-top: 10px;
+  }
+
+  .alan-sonuc {
+    background: var(--green);
+    color: #fff;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1.5px solid var(--green);
+  }
+
+  .boyut-row-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .boyut-row-header span {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .eleman-section {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eleman-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
   textarea {
     width: 100%;
     padding: 10px;
@@ -413,6 +474,7 @@
           <option value="domuz">Domuz</option>
           <option value="koyun">Koyun/Keçi</option>
         </select>
+        <div class="auto-note" id="hayvanNote">parametreler otomatik yüklendi</div>
       </div>
       <div class="form-group">
         <label>Hayvan Sayısı (N)</label>
@@ -421,15 +483,21 @@
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Yöre</label>
+        <label>İl / Yöre</label>
         <select id="yore" onchange="updateTemps()">
           <option value="samsun">Samsun</option>
           <option value="ankara">Ankara</option>
           <option value="izmir">İzmir</option>
           <option value="erzurum">Erzurum</option>
           <option value="antalya">Antalya</option>
-          <option value="custom">Özel</option>
+          <option value="istanbul">İstanbul</option>
+          <option value="bursa">Bursa</option>
+          <option value="konya">Konya</option>
+          <option value="diyarbakir">Diyarbakır</option>
+          <option value="trabzon">Trabzon</option>
+          <option value="custom">Özel (manuel giriş)</option>
         </select>
+        <div class="auto-note" id="meteoNote">meteoroloji değerleri otomatik dolduruldu</div>
       </div>
       <div class="form-group">
         <label>Barınak Türü</label>
@@ -467,47 +535,104 @@
   </div>
 
   <div class="card">
-    <div class="card-title"><span class="icon">🧱</span> Yapı Elemanları (U Değerleri)</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>U Duvar (W/m²°C)</label>
-        <input type="number" id="uDuvar" value="1.74" step="0.01">
+    <div class="card-title"><span class="icon">🧱</span> Yapı Elemanları (Boyut ve U Değerleri)</div>
+
+    <!-- DUVAR -->
+    <div class="eleman-section">
+      <div class="boyut-label">🧱 Duvar</div>
+      <div class="boyut-row-header">
+        <span>Uzunluk (m)</span><span>Yükseklik (m)</span><span>Adet</span>
       </div>
-      <div class="form-group">
-        <label>Alan Duvar (m²)</label>
-        <input type="number" id="aDuvar" value="246.2" step="0.1">
+      <div class="boyut-row">
+        <input type="number" id="dUzun" value="82" step="0.1" oninput="calcAlan('d')">
+        <input type="number" id="dYuk" value="3" step="0.1" oninput="calcAlan('d')">
+        <input type="number" id="dAdet" value="1" step="1" min="1" oninput="calcAlan('d')">
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>U Çatı (W/m²°C)</label>
-        <input type="number" id="uCati" value="2.21" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Alan Çatı (m²)</label>
-        <input type="number" id="aCati" value="881" step="0.1">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>U Pencere (W/m²°C)</label>
-        <input type="number" id="uPencere" value="5.93" step="0.01">
-      </div>
-      <div class="form-group">
-        <label>Alan Pencere (m²)</label>
-        <input type="number" id="aPencere" value="83" step="0.1">
+      <div class="form-row">
+        <div class="form-group">
+          <label>U Duvar (W/m²°C)</label>
+          <input type="number" id="uDuvar" value="1.74" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Hesaplanan Alan (m²)</label>
+          <div class="alan-sonuc" id="aDuvarGoster">246.0</div>
+          <input type="hidden" id="aDuvar" value="246">
+        </div>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>U Kapı (W/m²°C)</label>
-        <input type="number" id="uKapi" value="6.02" step="0.01">
+
+    <!-- ÇATI -->
+    <div class="eleman-section">
+      <div class="boyut-label">🏠 Çatı</div>
+      <div class="boyut-row-header">
+        <span>Uzunluk (m)</span><span>En (m)</span><span>Adet</span>
       </div>
-      <div class="form-group">
-        <label>Alan Kapı (m²)</label>
-        <input type="number" id="aKapi" value="11" step="0.1">
+      <div class="boyut-row">
+        <input type="number" id="cUzun" value="88" step="0.1" oninput="calcAlan('c')">
+        <input type="number" id="cEn" value="10" step="0.1" oninput="calcAlan('c')">
+        <input type="number" id="cAdet" value="1" step="1" min="1" oninput="calcAlan('c')">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>U Çatı (W/m²°C)</label>
+          <input type="number" id="uCati" value="2.21" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Hesaplanan Alan (m²)</label>
+          <div class="alan-sonuc" id="aCatiGoster">880.0</div>
+          <input type="hidden" id="aCati" value="880">
+        </div>
       </div>
     </div>
+
+    <!-- PENCERE -->
+    <div class="eleman-section">
+      <div class="boyut-label">🪟 Pencere</div>
+      <div class="boyut-row-header">
+        <span>Genişlik (m)</span><span>Yükseklik (m)</span><span>Adet</span>
+      </div>
+      <div class="boyut-row">
+        <input type="number" id="pUzun" value="1.2" step="0.1" oninput="calcAlan('p')">
+        <input type="number" id="pYuk" value="1.0" step="0.1" oninput="calcAlan('p')">
+        <input type="number" id="pAdet" value="69" step="1" min="0" oninput="calcAlan('p')">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>U Pencere (W/m²°C)</label>
+          <input type="number" id="uPencere" value="5.93" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Hesaplanan Alan (m²)</label>
+          <div class="alan-sonuc" id="aPencereGoster">82.8</div>
+          <input type="hidden" id="aPencere" value="82.8">
+        </div>
+      </div>
+    </div>
+
+    <!-- KAPI -->
+    <div class="eleman-section">
+      <div class="boyut-label">🚪 Kapı</div>
+      <div class="boyut-row-header">
+        <span>Genişlik (m)</span><span>Yükseklik (m)</span><span>Adet</span>
+      </div>
+      <div class="boyut-row">
+        <input type="number" id="kUzun" value="2.2" step="0.1" oninput="calcAlan('k')">
+        <input type="number" id="kYuk" value="2.5" step="0.1" oninput="calcAlan('k')">
+        <input type="number" id="kAdet" value="2" step="1" min="0" oninput="calcAlan('k')">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>U Kapı (W/m²°C)</label>
+          <input type="number" id="uKapi" value="6.02" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Hesaplanan Alan (m²)</label>
+          <div class="alan-sonuc" id="aKapiGoster">11.0</div>
+          <input type="hidden" id="aKapi" value="11">
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div class="card">
@@ -675,10 +800,38 @@
       </div>
     </div>
     <div class="info-item">
+      <div class="info-icon">🐓</div>
+      <div class="info-content">
+        <h4>Yumurtacı Tavuk</h4>
+        <p>qc: 2.5 l/h | qm: 7.0 g/h | qd Kış: 5.8 W | qd Yaz: 4.8 W<br>İç sıcaklık: 16°C (kış), 28°C (yaz)</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">🦃</div>
+      <div class="info-content">
+        <h4>Hindi</h4>
+        <p>qc: 5.0 l/h | qm: 18.0 g/h | qd Kış: 18.0 W | qd Yaz: 14.0 W<br>İç sıcaklık: 15°C (kış), 26°C (yaz)</p>
+      </div>
+    </div>
+    <div class="info-item">
       <div class="info-icon">🐄</div>
       <div class="info-content">
         <h4>Süt İneği</h4>
-        <p>qc: 150 l/h | qm: 380 g/h | qd Kış: 450 W<br>İç sıcaklık: 10°C (kış), 20°C (yaz)</p>
+        <p>qc: 150 l/h | qm: 380 g/h | qd Kış: 450 W | qd Yaz: 350 W<br>İç sıcaklık: 10°C (kış), 20°C (yaz)</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">🐷</div>
+      <div class="info-content">
+        <h4>Domuz</h4>
+        <p>qc: 40 l/h | qm: 100 g/h | qd Kış: 120 W | qd Yaz: 100 W<br>İç sıcaklık: 14°C (kış), 22°C (yaz)</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">🐑</div>
+      <div class="info-content">
+        <h4>Koyun / Keçi</h4>
+        <p>qc: 20 l/h | qm: 55 g/h | qd Kış: 60 W | qd Yaz: 45 W<br>İç sıcaklık: 10°C (kış), 22°C (yaz)</p>
       </div>
     </div>
     <div class="info-item">
@@ -696,51 +849,87 @@
       Bu uygulama, Türkiye'deki hayvan barınaklarında ısı dengesi ve havalandırma kapasitesini hesaplamak için geliştirilmiştir. 
       TS ve FAO standartlarına uygun formüller kullanılmaktadır.
       <br><br>
-      <strong>Versiyon:</strong> 1.0 — Temel Hesaplama<br>
-      <strong>Planlanan:</strong> v2.0 AB Standartları Modülü
+      <strong>Versiyon:</strong> 2.0 — İl Meteoroloji, Boyut→Alan Hesabı, Hayvan Parametresi Otomatik Yükleme<br>
+      <strong>Planlanan:</strong> v3.0 AB Standartları Modülü
     </p>
   </div>
 </div>
 
 <script>
-// ---- Veri ----
+// ---- Meteoroloji verileri (MGM) ----
 const yoreData = {
-  samsun:  { kis: -3,  yaz: 26 },
-  ankara:  { kis: -8,  yaz: 32 },
-  izmir:   { kis: 2,   yaz: 34 },
-  erzurum: { kis: -18, yaz: 26 },
-  antalya: { kis: 4,   yaz: 36 },
-  custom:  { kis: 0,   yaz: 30 },
+  samsun:     { kis: 2,   yaz: 28, rhoKis: 0.803, rhoYaz: 0.870, qm0: 5.5,  qmi: 12.9 },
+  ankara:     { kis: -5,  yaz: 32, rhoKis: 0.775, rhoYaz: 0.895, qm0: 3.2,  qmi: 10.5 },
+  izmir:      { kis: 4,   yaz: 35, rhoKis: 0.808, rhoYaz: 0.908, qm0: 6.0,  qmi: 13.5 },
+  erzurum:    { kis: -18, yaz: 25, rhoKis: 0.735, rhoYaz: 0.858, qm0: 1.8,  qmi: 9.0  },
+  antalya:    { kis: 6,   yaz: 36, rhoKis: 0.815, rhoYaz: 0.910, qm0: 7.2,  qmi: 14.5 },
+  istanbul:   { kis: 1,   yaz: 29, rhoKis: 0.800, rhoYaz: 0.875, qm0: 6.0,  qmi: 13.0 },
+  bursa:      { kis: -1,  yaz: 31, rhoKis: 0.793, rhoYaz: 0.888, qm0: 4.5,  qmi: 11.5 },
+  konya:      { kis: -6,  yaz: 33, rhoKis: 0.772, rhoYaz: 0.898, qm0: 3.0,  qmi: 10.0 },
+  diyarbakir: { kis: -3,  yaz: 38, rhoKis: 0.782, rhoYaz: 0.918, qm0: 3.8,  qmi: 11.0 },
+  trabzon:    { kis: 4,   yaz: 26, rhoKis: 0.808, rhoYaz: 0.862, qm0: 6.5,  qmi: 13.8 },
+  custom:     null,
 };
 
+// ---- Hayvan verileri ----
 const hayvanData = {
-  broiler:    { qc: 2.2,  qm: 6.3,  qdKis: 5.4,  qdYaz: 4.3,  tiKis: 18, tiYaz: 30 },
-  yumurtaci:  { qc: 2.2,  qm: 6.3,  qdKis: 5.4,  qdYaz: 4.3,  tiKis: 18, tiYaz: 28 },
-  hindi:      { qc: 3.5,  qm: 9.0,  qdKis: 7.0,  qdYaz: 6.0,  tiKis: 16, tiYaz: 28 },
-  inek:       { qc: 150,  qm: 380,  qdKis: 450,  qdYaz: 350,  tiKis: 10, tiYaz: 20 },
-  domuz:      { qc: 40,   qm: 100,  qdKis: 120,  qdYaz: 100,  tiKis: 14, tiYaz: 22 },
-  koyun:      { qc: 12,   qm: 30,   qdKis: 50,   qdYaz: 40,   tiKis: 10, tiYaz: 22 },
+  broiler:   { qc: 2.2,  qm: 6.3,  qdKis: 5.4,  qdYaz: 4.3,  tiKis: 18, tiYaz: 30, bt: 'kumes' },
+  yumurtaci: { qc: 2.5,  qm: 7.0,  qdKis: 5.8,  qdYaz: 4.8,  tiKis: 16, tiYaz: 28, bt: 'kumes' },
+  hindi:     { qc: 5.0,  qm: 18.0, qdKis: 18.0, qdYaz: 14.0, tiKis: 15, tiYaz: 26, bt: 'kumes' },
+  inek:      { qc: 150,  qm: 380,  qdKis: 450,  qdYaz: 350,  tiKis: 10, tiYaz: 20, bt: 'ahir'  },
+  domuz:     { qc: 40,   qm: 100,  qdKis: 120,  qdYaz: 100,  tiKis: 14, tiYaz: 22, bt: 'ahir'  },
+  koyun:     { qc: 20,   qm: 55,   qdKis: 60,   qdYaz: 45,   tiKis: 10, tiYaz: 22, bt: 'agil'  },
 };
 
 let lastResults = null;
 
+// ---- Hayvan parametrelerini otomatik doldur ----
 function updateDefaults() {
   const d = hayvanData[document.getElementById('hayvanTuru').value];
   if (!d) return;
-  document.getElementById('qc').value     = d.qc;
-  document.getElementById('qm').value     = d.qm;
-  document.getElementById('qdKis').value  = d.qdKis;
-  document.getElementById('qdYaz').value  = d.qdYaz;
-  document.getElementById('tiKis').value  = d.tiKis;
-  document.getElementById('tiYaz').value  = d.tiYaz;
+  document.getElementById('qc').value    = d.qc;
+  document.getElementById('qm').value    = d.qm;
+  document.getElementById('qdKis').value = d.qdKis;
+  document.getElementById('qdYaz').value = d.qdYaz;
+  document.getElementById('tiKis').value = d.tiKis;
+  document.getElementById('tiYaz').value = d.tiYaz;
+  document.getElementById('barinakTuru').value = d.bt;
+  const note = document.getElementById('hayvanNote');
+  note.style.display = 'block';
+  setTimeout(() => { note.style.display = 'none'; }, 3000);
 }
 
+// ---- İl meteorolojisini otomatik doldur ----
 function updateTemps() {
   const y = document.getElementById('yore').value;
-  if (y === 'custom') return;
+  const note = document.getElementById('meteoNote');
+  if (y === 'custom') { note.style.display = 'none'; return; }
   const d = yoreData[y];
-  document.getElementById('tdKis').value = d.kis;
-  document.getElementById('tdYaz').value = d.yaz;
+  if (!d) return;
+  document.getElementById('tdKis').value  = d.kis;
+  document.getElementById('tdYaz').value  = d.yaz;
+  document.getElementById('rhoKis').value = d.rhoKis;
+  document.getElementById('rhoYaz').value = d.rhoYaz;
+  document.getElementById('qm0').value    = d.qm0;
+  document.getElementById('qmi').value    = d.qmi;
+  note.style.display = 'block';
+  setTimeout(() => { note.style.display = 'none'; }, 3000);
+}
+
+// ---- Boyuttan alan hesapla ----
+function calcAlan(tip) {
+  const map = {
+    d: { l:'dUzun', h:'dYuk',  a:'dAdet', hidden:'aDuvar',   show:'aDuvarGoster'   },
+    c: { l:'cUzun', h:'cEn',   a:'cAdet', hidden:'aCati',    show:'aCatiGoster'    },
+    p: { l:'pUzun', h:'pYuk',  a:'pAdet', hidden:'aPencere', show:'aPencereGoster' },
+    k: { l:'kUzun', h:'kYuk',  a:'kAdet', hidden:'aKapi',    show:'aKapiGoster'    },
+  };
+  const m = map[tip];
+  const alan = (parseFloat(document.getElementById(m.l).value)||0)
+             * (parseFloat(document.getElementById(m.h).value)||0)
+             * (parseFloat(document.getElementById(m.a).value)||1);
+  document.getElementById(m.hidden).value       = alan;
+  document.getElementById(m.show).textContent   = alan.toFixed(1);
 }
 
 function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
@@ -760,7 +949,7 @@ function hesapla() {
   const tiYaz = g('tiYaz'), tdYaz = g('tdYaz');
   const dTKis = tiKis - tdKis;
 
-  // qy hesabı
+  // qy hesabı (hidden inputlardaki hesaplanmış alan değerleri kullanılır)
   const qyDuvar   = g('uDuvar')   * g('aDuvar')   * dTKis;
   const qyCati    = g('uCati')    * g('aCati')     * dTKis;
   const qyPencere = g('uPencere') * g('aPencere')  * dTKis;
@@ -775,20 +964,17 @@ function hesapla() {
   const qm = g('qm'), qmi = g('qmi'), qm0 = g('qm0');
   const QminSuBuhari = (qm * N / (qmi - qm0)) * rhoKis;
 
-  // Seçilen Qmin (büyük olanı)
+  // Qmin (büyük olanı)
   const QminKis = Math.max(QminCO2, QminSuBuhari);
 
-  // Geçiş
+  // Geçiş mevsimi
   const qdKis = g('qdKis'), qdYaz = g('qdYaz');
   const qdGecis = (qdKis + qdYaz) / 2;
   const barinakTuru = document.getElementById('barinakTuru').value;
   const deltaTGecis = barinakTuru === 'kumes' ? 5 : 7;
   const rhoGecis = (rhoKis + g('rhoYaz')) / 2;
-
-  // geçiş mevsimi qy: ti=(tiKis+tiYaz)/2, td=(tdKis+tdYaz)/2
   const tiGecis = (tiKis + tiYaz) / 2, tdGecis = (tdKis + tdYaz) / 2;
   const qyGecis = (g('uDuvar')*g('aDuvar') + g('uCati')*g('aCati') + g('uPencere')*g('aPencere') + g('uKapi')*g('aKapi')) * (tiGecis - tdGecis);
-
   const QGecis = (qdGecis * N - qyGecis) / (0.28 * deltaTGecis) * rhoGecis;
 
   // Yaz
@@ -799,7 +985,7 @@ function hesapla() {
   // Qmax (tasarım kapasitesi)
   const QMax = Math.max(QminKis, QGecis, QYaz);
 
-  // havalandırma ısı kaybı (kış)
+  // Havalandırma ısı kaybı (kış)
   const qvKis = 0.34 * QminKis * dTKis;
 
   // Isı dengesi
@@ -808,10 +994,10 @@ function hesapla() {
   const fark     = qhHayvan - qhDenge;
 
   // Hava açıklık alanları
-  const V = 1814.70; // hava çıkış bacası hızı (örnek)
-  const Acikis  = QMax / (3600 * V);
-  const Agitis  = Acikis * 2 / 3;
-  const AgirisMek = QMax / (3600 * 2.0); // mekanik (varsayılan 2 m/s)
+  const V = 1814.70;
+  const Acikis     = QMax / (3600 * V);
+  const Agitis     = Acikis * 2 / 3;
+  const AgirisMek  = QMax / (3600 * 2.0);
 
   lastResults = {
     hayvanTuru: document.getElementById('hayvanTuru').options[document.getElementById('hayvanTuru').selectedIndex].text,
@@ -881,10 +1067,17 @@ function switchTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
 }
+
+// ---- Başlangıçta alan hesapla ----
+['d','c','p','k'].forEach(calcAlan);
+// Başlangıçta Samsun meteoroloji verilerini doldur
+updateTemps();
+// Başlangıç hayvan (broiler) parametrelerini doldur
+updateDefaults();
 </script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+    navigator.serviceWorker.register('/barinak-havalandirma/sw.js');
   }
 </script>
 </body>
