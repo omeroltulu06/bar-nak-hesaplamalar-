@@ -217,7 +217,7 @@ input[readonly] { background: var(--brown-200); color: var(--brown-800); font-we
   <div class="section-label">Yapı Elemanları</div>
   <div class="card">
     <div class="eleman-block">
-      <div class="eleman-header"><div class="eleman-dot dot-duvar"></div><div class="eleman-title">Duvar</div></div>
+      <div class="eleman-header"><div class="eleman-dot dot-duvar"></div><div class="eleman-title">Duvar — Brüt Alan</div></div>
       <div class="form-row-3">
         <div class="form-group"><label>En (m)</label><input type="number" id="dEn" value="82" step="0.1" oninput="calcAlan('d')"></div>
         <div class="form-group"><label>Boy (m)</label><input type="number" id="dBoy" value="3" step="0.1" oninput="calcAlan('d')"></div>
@@ -225,8 +225,13 @@ input[readonly] { background: var(--brown-200); color: var(--brown-800); font-we
       </div>
       <div class="form-row">
         <div class="form-group"><label>U (W/m²°C)</label><input type="number" id="uDuvar" value="1.74" step="0.01"></div>
-        <div class="form-group"><label>Alan — hesaplanan (m²)</label><input type="number" id="aDuvar" value="246.0" readonly></div>
+        <div class="form-group"><label>Brüt Alan (m²)</label><input type="number" id="aDuvarBrut" value="246.0" readonly></div>
       </div>
+      <div style="background:var(--brown-200);border-radius:8px;padding:8px 10px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.65rem;font-weight:600;color:var(--brown-700);">Net Duvar = Brüt − Pencere − Kapı</span>
+        <span style="font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;color:var(--terra);" id="aDuvarNetGoster">—</span>
+      </div>
+      <input type="hidden" id="aDuvar" value="246.0">
     </div>
     <div class="eleman-block">
       <div class="eleman-header"><div class="eleman-dot dot-cati"></div><div class="eleman-title">Çatı</div></div>
@@ -243,9 +248,9 @@ input[readonly] { background: var(--brown-200); color: var(--brown-800); font-we
     <div class="eleman-block">
       <div class="eleman-header"><div class="eleman-dot dot-pencere"></div><div class="eleman-title">Pencere</div></div>
       <div class="form-row-3">
-        <div class="form-group"><label>En (m)</label><input type="number" id="pEn" value="1.2" step="0.1" oninput="calcAlan('p')"></div>
-        <div class="form-group"><label>Boy (m)</label><input type="number" id="pBoy" value="1.0" step="0.1" oninput="calcAlan('p')"></div>
-        <div class="form-group"><label>Adet</label><input type="number" id="pAdet" value="69" step="1" min="0" oninput="calcAlan('p')"></div>
+        <div class="form-group"><label>En (m)</label><input type="number" id="pEn" value="1.2" step="0.1" oninput="calcAlan('p');calcAlan('d')"></div>
+        <div class="form-group"><label>Boy (m)</label><input type="number" id="pBoy" value="1.0" step="0.1" oninput="calcAlan('p');calcAlan('d')"></div>
+        <div class="form-group"><label>Adet</label><input type="number" id="pAdet" value="69" step="1" min="0" oninput="calcAlan('p');calcAlan('d')"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>U (W/m²°C)</label><input type="number" id="uPencere" value="5.93" step="0.01"></div>
@@ -255,9 +260,9 @@ input[readonly] { background: var(--brown-200); color: var(--brown-800); font-we
     <div class="eleman-block">
       <div class="eleman-header"><div class="eleman-dot dot-kapi"></div><div class="eleman-title">Kapı</div></div>
       <div class="form-row-3">
-        <div class="form-group"><label>En (m)</label><input type="number" id="kEn" value="2.2" step="0.1" oninput="calcAlan('k')"></div>
-        <div class="form-group"><label>Boy (m)</label><input type="number" id="kBoy" value="2.5" step="0.1" oninput="calcAlan('k')"></div>
-        <div class="form-group"><label>Adet</label><input type="number" id="kAdet" value="2" step="1" min="0" oninput="calcAlan('k')"></div>
+        <div class="form-group"><label>En (m)</label><input type="number" id="kEn" value="2.2" step="0.1" oninput="calcAlan('k');calcAlan('d')"></div>
+        <div class="form-group"><label>Boy (m)</label><input type="number" id="kBoy" value="2.5" step="0.1" oninput="calcAlan('k');calcAlan('d')"></div>
+        <div class="form-group"><label>Adet</label><input type="number" id="kAdet" value="2" step="1" min="0" oninput="calcAlan('k');calcAlan('d')"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>U (W/m²°C)</label><input type="number" id="uKapi" value="6.02" step="0.01"></div>
@@ -420,6 +425,18 @@ function calcAlan(tip) {
              * (parseFloat(document.getElementById(m.boy).value)  || 0)
              * (parseFloat(document.getElementById(m.adet).value) || 1);
   document.getElementById(m.alan).value = alan.toFixed(1);
+
+  // Duvar için: brüt alanı göster, net = brüt - pencere - kapı hesapla
+  if (tip === 'd') {
+    document.getElementById('aDuvarBrut').value = alan.toFixed(1);
+  }
+  // Net duvar her zaman güncelle (pencere veya kapı değişince de)
+  const brut    = parseFloat(document.getElementById('aDuvarBrut').value) || 0;
+  const pencere = parseFloat(document.getElementById('aPencere').value)   || 0;
+  const kapi    = parseFloat(document.getElementById('aKapi').value)      || 0;
+  const net     = Math.max(0, brut - pencere - kapi);
+  document.getElementById('aDuvar').value          = net.toFixed(1);
+  document.getElementById('aDuvarNetGoster').textContent = net.toFixed(1) + ' m²';
 }
 
 function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
